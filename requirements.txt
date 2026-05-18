@@ -6,3 +6,4 @@ langchain[openai]
 fastapi[standard]
 pyodbc
 azure-storage-blob
+langgraph-supervisor
