@@ -7,3 +7,5 @@ fastapi[standard]
 pyodbc
 azure-storage-blob
 langgraph-supervisor
+pandas
+pyarrow

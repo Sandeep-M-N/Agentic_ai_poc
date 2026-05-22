@@ -7,7 +7,8 @@ from langchain.agents import create_agent
 from langchain_openai import AzureChatOpenAI
 from langchain_community.utilities import SQLDatabase
 from sqlalchemy import create_engine, text as sql_text
-
+import pandas as pd
+from datetime import datetime
 load_dotenv()
 
 # ─────────────────────────────────────────────
@@ -168,6 +169,7 @@ def migrate_subquery_logic(
         FROM PatientListSubQuery
         WHERE PatientListQueryID = '{patient_list_query_id}'
           AND Status = 'A'
+          AND ToggleState = 1
     """
     rows = run_query(query)
     if not rows:
@@ -331,9 +333,9 @@ def execute_patient_list_query(
     # ── Step 3: Build SELECT columns, subquery parts, WHERE conditions ─
     select_columns  = [
         f"{demo_table}.USUBJID",
-        f"{demo_table}.AGE",
-        f"{demo_table}.SEX",
-        f"{demo_table}.RACE"
+        # f"{demo_table}.AGE",
+        # f"{demo_table}.SEX",
+        # f"{demo_table}.RACE"
     ]
     subquery_parts   = []
     where_conditions = []
@@ -448,7 +450,7 @@ def execute_patient_list_query(
     from datetime import datetime
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"patient_results_{new_project_number}.json"
+    filename = f"patient_results_{new_project_number}.parquet"
     
     output_data = {
         "new_project": new_project_number,
@@ -456,12 +458,16 @@ def execute_patient_list_query(
         "schema": schema,
         "demo_table": demo_table,
         "total_patients": len(result),
-        "columns": columns,
-        "patients": result
+        # "columns": columns,
+        # "patients": result
     }
     
-    with open(filename, 'w') as f:
-        json.dump(output_data, f, indent=2, default=str)
+    # with open(filename, 'w') as f:
+    #     json.dump(output_data, f, indent=2, default=str)
+
+    # Convert patient records to DataFrame and save as Parquet
+    df = pd.DataFrame(result)
+    df.to_parquet(filename, index=False, engine="pyarrow")
     
     print(f"[INFO] Results saved to {filename}")
     return filename
